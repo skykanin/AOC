@@ -21,20 +21,25 @@
           pkgs = nixpkgs.legacyPackages.${system};
           inherit (pkgs) lib;
           hpkgs = pkgs.haskell.packages.${compiler-version};
+          # HLS
+          # Haskell packages to include
+          packages = p: with p; [ megaparsec ];
           # Haskell and shell tooling
           tools = [
-            hpkgs.haskell-language-server
-            hpkgs.ghc
+            (hpkgs.ghcWithPackages (p: with p; [ megaparsec ]))
             hpkgs.ghcid
             hpkgs.fourmolu
+            # Always put HLS in the bottom of the list
+            # so it doesn't override other exported packages
+            # like formatters and ghc...
+            hpkgs.haskell-language-server
           ];
           # System libraries that need to be symlinked
           libraries = [ ];
           libraryPath = "${lib.makeLibraryPath libraries}";
-        in hpkgs.shellFor {
+        in pkgs.mkShell {
           name = "dev-shell";
-          packages = p: [ ];
-          withHoogle = false;
+
           buildInputs = tools ++ libraries;
 
           LD_LIBRARY_PATH = libraryPath;
