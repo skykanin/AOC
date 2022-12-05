@@ -1,24 +1,37 @@
 module Stacks where
 
-import Control.Applicative (liftA2, some)
-import Data.Bifunctor (bimap)
-import Data.Char (isAlpha)
 import Data.Foldable (foldl')
 import Data.IntMap.Strict (IntMap)
 import Data.IntMap.Strict qualified as IM
+import Data.List (transpose)
+import Data.Maybe (catMaybes, fromJust)
+import Data.Void (Void)
 import System.IO (readFile')
-import Text.ParserCombinators.ReadP
+import Text.Megaparsec
+  ( Parsec
+  , anySingle
+  , manyTill
+  , parse
+  , parseMaybe
+  , satisfy
+  , sepBy1
+  , skipCount
+  , some
+  , (<|>)
+  )
+import Text.Megaparsec.Char (char, letterChar, newline, space, string)
+import Text.Megaparsec.Char.Lexer (decimal)
 
 main :: IO ()
 main = do
   file <- readFile' "input.txt"
-  let (x, y) = bimap init tail . break null . lines $ file
-      stacks = mkStacks x
-      cmds = map (parseCmd . filter (/= ' ')) y
-      run crane = getTop $ simulate crane cmds stacks
+  let (stacks, moves) = runParser file
+      run crane = getTop $ simulate crane moves stacks
 
   putStrLn $ run CrateMover9000 -- Part 1
   putStrLn $ run CrateMover9001 -- Part 2
+
+-- Simulating
 
 data Crane = CrateMover9000 | CrateMover9001
 
@@ -38,34 +51,39 @@ move crane amount from to m =
     mover CrateMover9000 = (reverse toTake <>)
     mover CrateMover9001 = (toTake <>)
 
-parseCmd :: String -> (Int, Int, Int)
-parseCmd = fst . head . readP_to_S parseMoveCmd
+-- Parsing
 
-parseMoveCmd :: ReadP (Int, Int, Int)
-parseMoveCmd = do
-  string "move"
-  amount <- int
-  string "from"
-  from <- int
-  string "to"
-  to <- int
-  eof
+type Parser = Parsec Void String
+
+crate :: Parser Char
+crate = char '[' *> letterChar <* char ']'
+
+crateSlot :: Parser (Maybe Char)
+crateSlot = (Just <$> crate) <|> (Nothing <$ string "   ")
+
+crateRow :: Parser [Maybe Char]
+crateRow = (crateSlot `sepBy1` char ' ') <* newline
+
+crateStacks :: Parser (IntMap [Char])
+crateStacks = do
+  rows <- some crateRow
+  let columns = transpose rows
+      stacks = catMaybes <$> columns
+  pure . IM.fromAscList $ zip [1 ..] stacks
+
+moveCmd :: Parser (Int, Int, Int)
+moveCmd = do
+  amount <- string "move " *> decimal
+  from <- string " from " *> decimal
+  to <- string " to " *> decimal
   pure (amount, from, to)
 
-int :: ReadP Int
-int = read <$> some digit
-  where
-    digit = satisfy (`elem` "0123456789")
+stacksAndMoves :: Parser (IntMap [Char], [(Int, Int, Int)])
+stacksAndMoves = do
+  stacks <- crateStacks
+  skipCount 2 $ manyTill anySingle newline
+  moves <- some $ moveCmd <* space
+  pure (stacks, moves)
 
-mkStacks :: [String] -> IntMap [Char]
-mkStacks = foldr addLine IM.empty
-
-addLine :: String -> IntMap [Char] -> IntMap [Char]
-addLine s m = foldl' f m $ zip [0 ..] s
-  where
-    f m (i, c)
-      | isAlpha c = IM.alter insertOrCreate (1 + (i - 1) `div` 4) m
-      | otherwise = m
-      where
-        insertOrCreate Nothing = Just [c]
-        insertOrCreate (Just oldVal) = Just $ c : oldVal
+runParser :: String -> (IntMap [Char], [(Int, Int, Int)])
+runParser = either (error . show) id . parse stacksAndMoves "puzzle"
