@@ -23,7 +23,7 @@
           hpkgs = pkgs.haskell.packages.${compiler-version};
           # HLS
           # Haskell packages to include
-          packages = p: with p; [ megaparsec optics-core ];
+          packages = p: with p; [ megaparsec optics-core pretty-simple ];
           # Haskell and shell tooling
           tools = [
             (hpkgs.ghcWithPackages packages)
