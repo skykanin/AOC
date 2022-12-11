@@ -4,13 +4,13 @@
 
 module CPU where
 
-import Data.Foldable (foldl')
-import Data.Maybe (fromJust)
+import Data.Foldable (Foldable (toList), foldl', traverse_)
+import Data.Maybe (fromMaybe)
 import Data.Sequence (Seq)
 import Data.Sequence qualified as Seq
 import Data.Void (Void)
 import GHC.Generics (Generic)
-import Optics.Core ((^.))
+import Optics.Core (view, (^.))
 import System.IO (readFile')
 import Text.Megaparsec qualified as P
 import Text.Megaparsec.Char qualified as P
@@ -20,7 +20,10 @@ import Text.Pretty.Simple (pPrint)
 main :: IO ()
 main = do
   i <- readFile' "input.txt"
-  pPrint . calcSignal . simulate . fromJust . P.parseMaybe cmds $ i -- Part 1
+  let simRes = simulate . fromMaybe (error "Invalid input") . P.parseMaybe cmds $ i
+
+  pPrint . calcSignal $ simRes -- Part 1
+  traverse_ print . drawPicture . view #registers $ simRes -- Part 2
 
 data Cmd
   = NoOp
@@ -67,3 +70,14 @@ simulate = foldl' tick SimState {register = 1, registers = Seq.singleton 1}
           NoOp -> registers Seq.|> register
           Add _ i -> registers Seq.|> register Seq.|> (register + i)
         register' = case registers' of (_ Seq.:|> l) -> l
+
+chunksOf :: Int -> Seq a -> Seq [a]
+chunksOf _ Seq.Empty = Seq.Empty
+chunksOf n xs = toList (Seq.take n xs) Seq.<| chunksOf n (Seq.drop n xs)
+
+drawPicture :: Seq Int -> Seq String
+drawPicture = chunksOf 40 . Seq.mapWithIndex draw
+  where
+    draw idx x
+      | (idx `mod` 40) `elem` [x - 1, x, x + 1] = '#'
+      | otherwise = '.'
