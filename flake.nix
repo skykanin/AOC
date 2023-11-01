@@ -17,7 +17,7 @@
       devShells.default =
         let
           # The compiler version to use for development
-          compiler-version = "ghc924";
+          compiler-version = "ghc94";
           pkgs = nixpkgs.legacyPackages.${system};
           inherit (pkgs) lib;
           hpkgs = pkgs.haskell.packages.${compiler-version};
@@ -26,6 +26,7 @@
           packages = p: with p; [ megaparsec optics-core pretty-simple ];
           # Haskell and shell tooling
           tools = [
+            pkgs.cbqn
             (hpkgs.ghcWithPackages packages)
             hpkgs.ghcid
             hpkgs.fourmolu
