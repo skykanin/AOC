@@ -24,3 +24,5 @@ cabal.project.local~
 # direnv stuff
 .envrc
 .direnv/
+# ignore input files
+**/i
