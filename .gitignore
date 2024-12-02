@@ -26,3 +26,5 @@ cabal.project.local~
 .direnv/
 # ignore input files
 **/i
+**/input
+**/input.txt
