@@ -1,16 +1,14 @@
 # T ← &fras "test.txt"
 I ← &fras "input.txt"
 
-Parse ← ≡°$"_   _" ⊜□ ⊸≠"\n"
+Parse ← ≡°$"_   _" ⊜∘ ⊸≠"\n"
 
-Day₁ ← /+ ⌵- ∩(⊏⊸⍏⋕) Parse
+Part₁ ← /+ ⌵- ∩(⊏⊸⍏⋕) Parse
 
-&p "--- Day1 ---"
-&p Day₁ I
+&p "--- Part1 ---"
+&p Part₁ I
 
-Day₂ ← (
-  /+ × ⟜≡(/+=) ⊙¤ ∩⋕ Parse
-)
+Part₂ ← /+ × ⟜≡(/+=) ⊙¤ ∩⋕ Parse
 
-&p "--- Day2 ---"
-&p Day₂ I
+&p "--- Part2 ---"
+&p Part₂ I
