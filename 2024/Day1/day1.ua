@@ -1,14 +1,13 @@
-# T ← &fras "test.txt"
-I ← &fras "input.txt"
+I ← &fras "t"
 
 Parse ← ≡°$"_   _" ⊜∘ ⊸≠"\n"
 
-Part₁ ← /+ ⌵- ∩(⊏⊸⍏⋕) Parse
+Part₁ ← /+ ⌵- ∩(⍆⋕) Parse
 
 &p "--- Part1 ---"
-&p Part₁ I
+⍤⤙≍ 11 ⊸&p Part₁ I
 
 Part₂ ← /+ × ⟜≡(/+=) ⊙¤ ∩⋕ Parse
 
 &p "--- Part2 ---"
-&p Part₂ I
+⍤⤙≍ 31 ⊸&p Part₂ I
