@@ -1,6 +1,6 @@
 ┌─╴Solution
   Part₁ ← /+≡/×⋕≡↘₁regex $ mul\((\d{1,3}),(\d{1,3})\)
-  Part₂ ← Part₁?▽⬚1\(↥₀↧₁+)+⊙¯∩⌕"do()","don't()".
+  Part₂ ← Part₁▽⬚1\(↥₀↧₁+)+⊙¯∩⌕"do()","don't()".
 └─╴
 
 ┌─╴test
